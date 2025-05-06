@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Fontawesome 연결 Embed Code Start-->
+    <script src="https://kit.fontawesome.com/0f39c44f6d.js" crossorigin="anonymous"></script> <!-- Fontawesome 연결 -->
+    <!-- Fontawesome 연결 Embed Code End-->
+     <link th:href="@{/css/style.css}" rel="stylesheet" type="text/css">
+    <title>Join Form Page</title>
+</head>
+<body>
+    <th:block th:replace="~{/layout/layout :: guestHeader}"></th:block>
+
+    <div class="main-container">
+        <div class="main-wrapper">
+            <form th:action="@{/member/join}" method="POST" class="form">
+                <h2 class="form-intro">회원가입</h2>
+                <div class="input-layout-username">
+                    <label for="username" class="input-label username-label">Id</label>
+                    <input class="input-design" type="text" name="username" id="username" placeholder="6자 이상 20자 이하 (영문, 숫자,하이픈 '-')만 허용" required>
+                </div>
+                <div class="input-layout-one">
+                    <label for="password" class="input-label">Password</label>
+                    <input class="input-design" type="password" name="password" id="password" placeholder="6자 이상 20자 이하 대,소문자,영문 특수 문자를 포함 " required>
+                </div>
+                <div class="input-layout-one">
+                    <label for="email" class="input-label">Email</label>
+                    <input class="input-design" type="email" name="email" id="email" required>
+                </div>
+                <div>
+                    <span id="id-check-message"></span>
+                    <span id="password-check-message"></span>
+                    <span id="email-check-message"></span>
+                </div>
+                <div class="input-layout-name">
+                    <label for="firstname" class="input-label">이름</label>
+                    <label for="lastname" class="input-label">성</label>
+                    <input class="input-design name" type="text" name="firstname" id="firstname" placeholder="이름" required>
+                    <input class="input-design name" type="text" name="lastname" id="lastname" placeholder="성" required>
+                </div>
+                <div>
+                    <span id="name-check-message"></span>
+                </div>
+                <div class="">
+                    <button class="join-btn" type="button" value="회원가입">회원가입</button>
+                </div>
+                <div class="">
+                    <a th:href="@{/member/loginForm}" class="orange-hover">아이디가 이미 있으신가요?</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+<script th:inline="javascript">
+
+let usernameDebounceTimer = null;
+let passwordDebounceTimer = null;
+let emailDebounceTimer = null;
+let nameDebounceTimer = null;
+
+const debounceTimers = {"username":usernameDebounceTimer,"password":passwordDebounceTimer,"email" : emailDebounceTimer, "name" : nameDebounceTimer};
+
+
+const inputUsername = document.querySelector("#username");
+const inputPassword = document.querySelector("#password");
+const inputEmail = document.querySelector("#email");
+
+const inputFirstname = document.querySelector("#firstname"); 
+const inputLastname = document.querySelector("#lastname");
+const inputNames = document.querySelectorAll(".name");
+
+const joinBtn = document.querySelector(".join-btn");
+const idCheckMessage = document.querySelector(".id-check-message");
+
+
+
+inputUsername.addEventListener("input", () => {
+    clearTimeout(usernameDebounceTimer);
+    usernameDebounceTimer = setTimeout( async () => {
+        const username = inputUsername.value.trim();
+        const result = validateUsername(username);
+        
+
+        // ✅ 후속 처리
+        // 1. input을 빨갛게 물들임
+        console.log(result);
+        const idCheckMessage = document.querySelector("#id-check-message");
+        
+
+        if(result.valid === true){
+            
+            try{
+
+                const res = await fetch("/member/idCheck",{
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({"username" : username}) // 객체로 전달
+                });
+
+                const data = await res.json();
+
+                switch(data.status){
+                    case "AVAILABLE":
+                        break;
+                    case "DUPLICATE":
+                        result.valid = false;
+                        result.message= "사용할 수 없는 아이디 입니다.";
+                        break;
+                    default:
+                        result.valid = false;
+                        result.message= "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+                        break;
+                }
+            
+        
+            } catch(e){
+                console.error(e.message);
+            }
+        }
+        updateUI(inputUsername,idCheckMessage,result);
+            
+
+    }, 500) // 0.5초 입력 멈춤 후 검사 실행
+});
+
+// inputUsername.addEventListener("input", (inpUser) => {
+//     validate(inpUser,idCheckMessage,() => validateUsername(inputUsername.value) , debounceTimers.usernameDebounceTimer,async () =>{
+//     const res = await fetch("/member/idCheck",{
+//         method: "POST",
+//         headers: {"Content-Type": "application/json"},
+//         body: JSON.stringify({"username" : username}) // 객체로 전달
+//     });
+//     const data = await res.json();
+//     });
+// })
+function validate(inputElem,messageElem,validatorFunc,debounceTimer = debounceTimers,ascFunc = null){
+        clearTimeout(debounceTimer[inputElem.id]);
+
+        debounceTimer[inputElem.id] = setTimeout( async ()=>{
+            const inputValue = inputElem.value.trim();
+            const result = validatorFunc(inputValue);
+
+            if(result.valid === true && ascFunc){
+                try{
+                    const data = await ascFunc(inputElem.id,inputValue); // json 데이터 반환
+                    
+                    switch(data.status){
+                        
+                        case "AVAILABLE":
+                            break;
+
+                        case "DUPLICATE":
+                            result.valid = false;
+                            result.message= "이미 사용 중 입니다.";
+                            break;
+
+                        default:
+                            result.valid = false;
+                            result.message= "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+                            break;
+                    }
+                
+
+                } catch(e){
+                    console.error(e.message);
+                }
+            } else{
+                updateUI(inputElem,messageElem,result);
+            }
+            
+
+        },400)
+}
+// async function getResult(){
+
+//  
+// }
+
+inputPassword.addEventListener("input",() => {
+    
+    clearTimeout(passwordDebounceTimer);
+
+    passwordDebounceTimer =  setTimeout(()=>{
+        
+        const password = inputPassword.value.trim();
+
+        const result = validatePassword(password);
+        const passwordCheckMessage = document.querySelector("#password-check-message");
+
+        updateUI(inputPassword,passwordCheckMessage,result);
+
+    },400);
+
+});
+
+
+inputEmail.addEventListener("input",() => {
+    
+    clearTimeout(emailDebounceTimer);
+
+    emailDebounceTimer =  setTimeout(async () => {
+        
+        const email = inputEmail.value.trim();
+        const emailCheckMessage = document.querySelector("#email-check-message");
+        
+        const result = validateEmail(email);
+        
+
+        if(result.valid === true){
+            
+            try{
+
+                const res = await fetch("/member/emailCheck",{
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({"email" : email}) // 객체로 전달
+                });
+
+                const data = await res.json();
+
+                switch(data.status){
+                    case "AVAILABLE":
+                        break;
+                    case "DUPLICATE":
+                        result.valid = false;
+                        result.message= "사용할 수 없는 이메일 입니다.";
+                        break;
+                    default:
+                        result.valid = false;
+                        result.message= "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+                        break;
+                }
+            
+        
+            } catch(e){
+                console.error(e.message);
+            }
+        }
+        
+        updateUI(inputEmail,emailCheckMessage,result);
+
+    },400);
+});
+
+inputNames.forEach((name)=>{
+
+    name.addEventListener("input",() => {
+        
+        clearTimeout(nameDebounceTimer);
+
+        nameDebounceTimer =  setTimeout(()=>{
+            
+            const fisrtname = inputFirstname.value.trim();
+            const lastname =  inputLastname.value.trim();
+
+            const firstnameResult = validateName(fisrtname);
+            const nameCheckMessage = document.querySelector("#name-check-message");
+
+            console.log(`First NAME  == [${fisrtname}] 길이 : [${fisrtname.length}] ${firstnameResult.valid}  : ${firstnameResult.message} `);
+            updateUIOnlyInput(inputFirstname,firstnameResult);
+            
+            const lastnameResult = validateName(lastname);    
+            console.log(`Last NAME ==[${lastname}]  길이 : [${lastname.length}]${lastnameResult.valid}  : ${lastnameResult.message}`);
+            updateUIOnlyInput(inputLastname,lastnameResult);
+
+            if(firstnameResult.valid && lastnameResult.valid){
+                const finalResult = { valid: true, message: "사용 가능한 이름입니다." };
+                updateUIOnlyMessage(nameCheckMessage,finalResult);
+            } else{
+                // 이름이 유효함
+                if(lastnameResult.valid === true){
+                    updateUIOnlyMessage(nameCheckMessage,firstnameResult);
+                } else if(firstnameResult.valid){
+                    updateUIOnlyMessage(nameCheckMessage,lastnameResult);
+                } else{
+                    updateUIOnlyMessage(nameCheckMessage,lastnameResult);
+                }
+            }
+
+        },400);
+
+    });
+})
+
+joinBtn.addEventListener("click", (e)=> {
+    // 모든 값 가져와서 유효성 검사 진행 시켜
+    const usernameResult = validateUsername(inputUsername.value);
+    const passwordResult = validatePassword(inputPassword.value);
+    
+
+})
+
+
+function validateUsername(username) {
+    
+    // 1. 공백 검사
+    if (/\s/.test(username)) {
+        return {
+            valid: false,
+            code: "WHITESPACE",
+            message: "아이디에 공백은 사용할 수 없습니다."
+        };
+    }
+    // 2. 최소 길이 검사
+    if (username.length < 6) {
+        return {
+            valid: false,
+            code: "TOO_SHORT",
+            message: "아이디는 최소 6자 이상이어야 합니다."
+        };
+    }
+    // 3. 최대 길이 검사
+    if (username.length > 20) {
+        return {
+            valid: false,
+            code: "TOO_LONG",
+            message: "아이디는 최대 20자 이하여야 합니다."
+        };
+    }
+    // 4. 대문자 포함 여부
+    if (/[A-Z]/.test(username)) {
+        return {
+            valid: false,
+            code: "UPPERCASE",
+            message: "영문 대문자는 사용할 수 없습니다."
+        };
+    }
+    // 5. 허용되지 않은 특수문자 검사
+    // 허용 문자: 소문자, 숫자, 하이픈(-), 언더바(_)
+    if (/[^a-z0-9_-]/.test(username)) {
+        return {
+            valid: false,
+            code: "INVALID_CHAR",
+            message: "아이디는 영소문자, 숫자, 하이픈(-), 언더바(_)만 사용할 수 있습니다."
+        };
+    }
+    // 6. 모든 조건 통과
+    
+    return {
+        valid: true,
+        code: "AVAILABLE",
+        message: "사용 가능한 아이디입니다."
+    };
+}
+
+
+function validatePassword(password) {
+    // 1. 공백 포함 여부
+    if (/\s/.test(password)) {
+        return {
+            valid: false,
+            code: "WHITESPACE",
+            message: "비밀번호에 공백을 포함할 수 없습니다."
+        };
+    }
+
+    // 2. 최소 길이 검사
+    if (password.length < 6) {
+        return {
+            valid: false,
+            code: "TOO_SHORT",
+            message: "비밀번호는 최소 6자 이상이어야 합니다."
+        };
+    }
+
+    // 3. 최대 길이 검사
+    if (password.length > 20) {
+        return {
+            valid: false,
+            code: "TOO_LONG",
+            message: "비밀번호는 최대 20자 이하여야 합니다."
+        };
+    }
+
+    // 4. 영문자 포함 여부
+    if (!/[a-zA-Z]/.test(password)) {
+        return {
+            valid: false,
+            code: "NO_LETTER",
+            message: "비밀번호에는 영문자가 최소 1자 이상 포함되어야 합니다."
+        };
+    }
+
+    // 5. 숫자 포함 여부
+    if (!/[0-9]/.test(password)) {
+        return {
+            valid: false,
+            code: "NO_NUMBER",
+            message: "비밀번호에는 숫자가 최소 1자 이상 포함되어야 합니다."
+        };
+    }
+
+    // 6. 특수문자 포함 여부 (예: !@#$%^&*() 등)
+    // specialCharPattern
+
+//    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    const specialCharPattern = new RegExp(`[!@#$%^&*(),.?":{}|<>]`);
+
+    if (!specialCharPattern.test(password)) {
+        return {
+            valid: false,
+            code: "NO_SPECIAL_CHAR",
+            message: "비밀번호에는 특수문자가 최소 1자 이상 포함되어야 합니다."
+        };
+    }
+
+    // 7. 모든 조건 통과
+    return {
+        valid: true,
+        code: "VALID",
+        message: "사용 가능한 비밀번호입니다."
+    };
+}
+
+function validateEmail(email) {
+    // 1. 공백 포함 검사
+    if (/\s/.test(email)) {
+        return {
+            valid: false,
+            code: "WHITESPACE",
+            message: "이메일에 공백은 사용할 수 없습니다."
+        };
+    }
+
+    // 2. 이메일 형식 정규식 검사
+    const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$/;
+
+    if (!pattern.test(email)) {
+        return {
+            valid: false,
+            code: "INVALID_FORMAT",
+            message: "올바른 이메일 형식이 아닙니다."
+        };
+    }
+
+    // 3. 모든 조건 통과
+    return {
+        valid: true,
+        code: "VALID",
+        message: "사용 가능한 이메일입니다."
+    };
+}
+
+
+
+function validateName(name) {
+    const pattern = /^[가-힣]+$/;
+
+
+    // 1. 0글자 (공백 포함) 거부
+    if (name.length === 0) {
+        return {
+            valid: false,
+            code: "EMPTY",
+            message: "성 이름 모두 작성해주세요."
+        };
+    }
+
+    // 2. 숫자 포함 거부
+    if (/\d/.test(name)) {
+        return {
+            valid: false,
+            code: "HAS_NUMBER",
+            message: "숫자는 사용할 수 없습니다."
+        };
+    }
+    // 3. 특수 문자 있으면 거부
+    if (/[~!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(name)) {
+        return { valid: false, message: "특수문자는 사용할 수 없습니다." };
+    }
+
+    // 한글 온전한 하나의 글자가 아닌경우 ex) ㅋ ,ㅌ 
+    if (!pattern.test(name)) {
+        return {
+            valid: false,
+            message: "올바른 이름 형식이 아닙니다."
+        };
+    }
+
+    return {
+        valid: true,
+        message: "사용 가능한 이름입니다."
+    };
+}
+
+function updateUI(inputElem,messageElem,result){
+    if(!result) return;
+
+    if(result.valid === false){
+    /**
+     * 해야 하는 일
+     * 1. input에 있는 invlid-value가 있으면 그대로 없으면 제거
+     * 2. span에 warn이 있으면 그대로 없으면 추가
+     * 3. span에 successed가 있었다면 제거 없었다면 그대로
+     * 
+     *  
+     */
+    
+    if(!inputElem.classList.contains("invalid-value")){
+        inputElem.classList.toggle("invalid-value");
+    }
+    if(!messageElem.classList.contains("warn")){
+        messageElem.classList.toggle("warn");
+    }
+    if(messageElem.classList.contains("successed")){
+        messageElem.classList.toggle("successed");
+    }
+    messageElem.textContent = result.message;
+        
+    } else{
+        if(inputElem.classList.contains("invalid-value")){
+            inputElem.classList.toggle("invalid-value");
+        } 
+        if(messageElem.classList.contains("warn")){
+            messageElem.classList.toggle("warn");
+        } 
+        if(!messageElem.classList.contains("successed")){
+            messageElem.classList.toggle("successed");
+        }
+        messageElem.textContent = result.message;
+    }
+
+}
+
+function updateUIOnlyInput(inputElem, result){
+    if(!result) return;
+
+    if(result.valid === false){
+    /**
+     * 해야 하는 일
+     * 1. input에 있는 invlid-value가 있으면 그대로 없으면 제거
+     * 2. span에 warn이 있으면 그대로 없으면 추가
+     * 3. span에 successed가 있었다면 제거 없었다면 그대로
+     * 
+     *  
+     */
+    
+    if(!inputElem.classList.contains("invalid-value")){
+        inputElem.classList.toggle("invalid-value");
+    }
+        
+    } else{
+        if(inputElem.classList.contains("invalid-value")){
+            inputElem.classList.toggle("invalid-value");
+        } 
+    }
+
+}
+function updateUIOnlyMessage(messageElem, result){
+    if(!result) return;
+
+    if(result.valid === false){
+        if(!messageElem.classList.contains("warn")){
+            messageElem.classList.toggle("warn");
+        }
+        if(messageElem.classList.contains("successed")){
+            messageElem.classList.toggle("successed");
+        }
+        
+    } else{
+        if(messageElem.classList.contains("warn")){
+            messageElem.classList.toggle("warn");
+        } 
+        if(!messageElem.classList.contains("successed")){
+            messageElem.classList.toggle("successed");
+        }
+    }
+    messageElem.textContent = result.message;
+}
+
+</script>
+</body>
+</html>
