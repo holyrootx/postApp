@@ -1,9 +1,12 @@
 package com.zerck.postApp.controller;
 
+import com.zerck.postApp.domain.MemberDTO;
 import com.zerck.postApp.response.EmailCheckResponse;
 import com.zerck.postApp.response.IdCheckResponse;
+import com.zerck.postApp.response.JoinResponse;
 import com.zerck.postApp.service.MemberService;
 import com.zerck.postApp.status.EmailStatus;
+import com.zerck.postApp.status.JoinResponseStatus;
 import com.zerck.postApp.status.UsernameStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -60,10 +63,22 @@ public class MemberController {
     }
 
     @PostMapping("/join")
-    public ResponseEntity<String> join(){
+    public ResponseEntity<JoinResponse> join(@RequestBody MemberDTO memberDTO){
+        log.info(memberDTO);
 
+        UsernameStatus usernameStatus = memberService.checkId(memberDTO.getUsername());
 
-        return new ResponseEntity<>("successed", HttpStatus.OK);
+        if(UsernameStatus.DUPLICATE == usernameStatus){
+            return new ResponseEntity<>(new JoinResponse(JoinResponseStatus.DUPLICATE_USERNAME),HttpStatus.CONFLICT);
+        }
+
+        EmailStatus emailStatus = memberService.checkEmail(memberDTO.getEmail());
+
+        if(EmailStatus.DUPLICATE == emailStatus){
+            return new ResponseEntity<>(new JoinResponse(JoinResponseStatus.DUPLICATE_EMAIL),HttpStatus.CONFLICT);
+        }
+
+        return new ResponseEntity<>(new JoinResponse(JoinResponseStatus.SUCCESS), HttpStatus.CREATED);
     }
 
 }
