@@ -41,7 +41,16 @@
             </div>
         </div>
     </div>
-    
+    <div th:fragment="modal">
+        <!-- 모달창 (기본적으로 숨겨짐) -->
+        <div id="progressModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="loader"></div>
+                <i class="fa-solid fa-circle-check hidden check-icon"></i>
+                <p class="modal-wait-message">잠시만 기다려주세요...</p>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>

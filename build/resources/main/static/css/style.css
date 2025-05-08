@@ -7,23 +7,45 @@
 }
 *{
     box-sizing: border-box;
-    text-decoration: none;
     margin: 0;
     padding: 0;
-    color: black;
+    font-size: 1rem;
+}
+body{
+    color: var(--black);
 }
 li {
     list-style: none;
 }
 a {
     display: inline-block;
+    text-decoration: none;
 }
 input {
     
 }
-input::placeholder {
-  font-size: 0.8rem; /* placeholder 글자 크기 */
+button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font: inherit;
 }
+.warn{
+    color : var(--warn);
+}
+.successed{
+    color : var(--successed);
+}
+  /* 숨김 처리 */
+.hidden {
+   display: none;
+}
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .header-container{
     padding: 0px 8rem;
 }
@@ -49,74 +71,4 @@ input::placeholder {
 .main-wrapper{
     padding: 2rem 4rem;
 }
-.form{
-    display: grid;
-    grid-template-columns: 1fr;
-    justify-items: center;
-    gap: 0.6rem;
-    padding: 4rem 8rem;
-    
-    border-radius: 0.75rem;
-    box-shadow: 0px 0px 10px 1px rgb(253, 94, 83,0.2);
-    
-}
-.form-intro{
-    font-size: 2rem;
-}
-.input-layout-username{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    
-}
-.input-label{
-    font-size: 1.6rem;
-}
-.username-label{
-    grid-column-start: 1;
-    grid-column-end: 3;
-}
-.invalid-value{
-    border-radius: 0.4rem;
-    border-style: solid;
-    border-color: var(--warn);
-    border-width: 0.2rem;
-    color: var(--warn);
-    text-decoration: underline;
-}
-.input-layout-one{
-    display: grid;
-    grid-template-columns: 1fr;
-}
-.input-design{
-    padding: 0.2rem 0.6rem 0.2rem 0.1rem;
-    font-size: 1.6rem;
-}
-.input-design:focus{
-    outline: none;
-}
-.input-layout-name{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-}
-.orange-hover:hover{
-    color: var(--sunset-orange);
-    font-weight: bold;
-}
-.join-link:hover{
-    color: var(--sunset-orange);
-    font-weight: bold;
-}
-.btn{
-    width: 100%;
-}
-.form-btn{
-   padding: 0.2rem 0.6rem;
-}
 
-.warn{
-    color : var(--warn);
-}
-.successed{
-    color : var(--successed);
-}

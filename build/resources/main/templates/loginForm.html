@@ -6,7 +6,8 @@
     <!-- Fontawesome 연결 Embed Code Start-->
     <script src="https://kit.fontawesome.com/0f39c44f6d.js" crossorigin="anonymous"></script> <!-- Fontawesome 연결 -->
     <!-- Fontawesome 연결 Embed Code End-->
-     <link rel="stylesheet" th:href="@{/css/style.css}" type="text/css">
+    <link th:href="@{/css/style.css}" rel="stylesheet" type="text/css">
+    <link th:href="@{/css/form.css}" rel="stylesheet" type="text/css">
     <title>Login Form Page</title>
 </head>
 <body>
@@ -46,7 +47,7 @@
                     <input class="form-btn" type="submit" value="로그인">
                 </div>
                 <div class="">
-                    <a href="#" class="orange-hover">아이디가 없으신가요?</a>
+                    <a th:href="@{/member/joinForm}" class="orange-hover">아이디가 없으신가요?</a>
                 </div>
             </form>
         </div>

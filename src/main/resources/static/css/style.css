@@ -36,6 +36,10 @@ button {
 .successed{
     color : var(--successed);
 }
+  /* 숨김 처리 */
+.hidden {
+   display: none;
+}
 .flex-center {
     display: flex;
     justify-content: center;
