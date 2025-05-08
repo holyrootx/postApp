@@ -37,44 +37,44 @@ public class MemberController {
     }
 
     @PostMapping("/idCheck")
-    public ResponseEntity<IdCheckResponse> idCheck(@RequestBody String username){
+    public ResponseEntity<JoinResponse> idCheck(@RequestBody String username){
 
         log.info("[POST] MemberController.idCheck @PARAM username : " + username);
 
-        UsernameStatus usernameStatus = memberService.checkId(username);
-        if(usernameStatus == UsernameStatus.DUPLICATE){
-            return new ResponseEntity<>(new IdCheckResponse(UsernameStatus.DUPLICATE), HttpStatus.CONFLICT);
+        JoinResponseStatus usernameStatus = memberService.checkId(username);
+        if(usernameStatus == JoinResponseStatus.DUPLICATE_EMAIL){
+            return new ResponseEntity<>(new JoinResponse(JoinResponseStatus.DUPLICATE_EMAIL), HttpStatus.CONFLICT);
         }
 
-        return new ResponseEntity<>(new IdCheckResponse(UsernameStatus.AVAILABLE), HttpStatus.OK);
+        return new ResponseEntity<>(new JoinResponse(JoinResponseStatus.AVAILABLE_EMAIL), HttpStatus.OK);
     }
 
     @PostMapping("/emailCheck")
-    public ResponseEntity<EmailCheckResponse> emailCheck(@RequestBody String email){
+    public ResponseEntity<JoinResponse> emailCheck(@RequestBody String email){
 
         log.info("[POST] MemberController.emailCheck @PARAM email : " + email);
 
-        EmailStatus emailStatus = memberService.checkEmail(email);
-        if(emailStatus == EmailStatus.DUPLICATE){
-            return new ResponseEntity<>(new EmailCheckResponse(EmailStatus.DUPLICATE), HttpStatus.CONFLICT);
+        JoinResponseStatus emailStatus = memberService.checkEmail(email);
+        if(emailStatus == JoinResponseStatus.AVAILABLE_EMAIL){
+            return new ResponseEntity<>(new JoinResponse(JoinResponseStatus.AVAILABLE_EMAIL), HttpStatus.CONFLICT);
         }
 
-        return new ResponseEntity<>(new EmailCheckResponse(EmailStatus.AVAILABLE), HttpStatus.OK);
+        return new ResponseEntity<>(new JoinResponse(JoinResponseStatus.AVAILABLE_EMAIL), HttpStatus.OK);
     }
 
     @PostMapping("/join")
     public ResponseEntity<JoinResponse> join(@RequestBody MemberDTO memberDTO){
         log.info(memberDTO);
 
-        UsernameStatus usernameStatus = memberService.checkId(memberDTO.getUsername());
+        JoinResponseStatus usernameStatus = memberService.checkId(memberDTO.getUsername());
 
-        if(UsernameStatus.DUPLICATE == usernameStatus){
+        if(JoinResponseStatus.DUPLICATE_USERNAME == usernameStatus){
             return new ResponseEntity<>(new JoinResponse(JoinResponseStatus.DUPLICATE_USERNAME),HttpStatus.CONFLICT);
         }
 
-        EmailStatus emailStatus = memberService.checkEmail(memberDTO.getEmail());
+        JoinResponseStatus emailStatus = memberService.checkEmail(memberDTO.getEmail());
 
-        if(EmailStatus.DUPLICATE == emailStatus){
+        if(JoinResponseStatus.DUPLICATE_EMAIL == emailStatus){
             return new ResponseEntity<>(new JoinResponse(JoinResponseStatus.DUPLICATE_EMAIL),HttpStatus.CONFLICT);
         }
 

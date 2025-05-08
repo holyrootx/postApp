@@ -6,7 +6,8 @@
     <!-- Fontawesome 연결 Embed Code Start-->
     <script src="https://kit.fontawesome.com/0f39c44f6d.js" crossorigin="anonymous"></script> <!-- Fontawesome 연결 -->
     <!-- Fontawesome 연결 Embed Code End-->
-     <link th:href="@{/css/style.css}" rel="stylesheet" type="text/css">
+    <link th:href="@{/css/style.css}" rel="stylesheet" type="text/css">
+    <link th:href="@{/css/form.css}" rel="stylesheet" type="text/css">
     <title>Join Form Page</title>
 </head>
 <body>
@@ -374,11 +375,12 @@
                 const data = await res.json();
                 console.log(data.status);
                 if(data.status){
-
+                    // success면
                 }
             } catch(e){
                 console.error(e.message);
             } finally{
+            // 
             }
         } else{
             console.log("에러난 항목이 하나는 무조건 있다.");
@@ -473,8 +475,16 @@
         if (!/[a-zA-Z]/.test(password)) {
             return {
                 valid: false,
-                code: "NO_LETTER",
-                message: "비밀번호에는 영문자가 최소 1자 이상 포함되어야 합니다."
+                code: "NO_LOWER",
+                message: "비밀번호에는 소문자가 최소 1자 이상 포함되어야 합니다."
+            };
+        }
+        // 4. 영문자 포함 여부
+        if (!/[A-Z]/.test(password)) {
+            return {
+                valid: false,
+                code: "NO_UPPER",
+                message: "비밀번호에는 대문자가 최소 1자 이상 포함되어야 합니다."
             };
         }
 
