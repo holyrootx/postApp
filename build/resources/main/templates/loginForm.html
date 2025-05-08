@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Fontawesome 연결 Embed Code Start-->
+    <script src="https://kit.fontawesome.com/0f39c44f6d.js" crossorigin="anonymous"></script> <!-- Fontawesome 연결 -->
+    <!-- Fontawesome 연결 Embed Code End-->
+     <link rel="stylesheet" th:href="@{/css/style.css}" type="text/css">
+    <title>Login Form Page</title>
+</head>
+<body>
+
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="logo-container">
+                <a href="#" class="header-item">Logo</a>
+            </div>
+            <div class="menu-container">
+                <a href="#" class="header-item">🔥인기글</a>
+                <a href="#" class="header-item">👀글 보기</a>
+                <a href="#" class="header-item">📝나의 글</a>
+                <a href="#" class="header-item">📝나의 댓글 </a>
+            </div>
+            <div class="auth-conatiner">
+                <a href="#" class="header-item">Login</a>
+                <a href="#" class="header-item">Join</a>
+            </div>
+        </div>
+    </div>
+    <div class="main-container">
+        <div class="main-wrapper">
+            <form th:action="@{/member/login}" method="POST" class="form">
+                <h2 class="form-intro">로그인</h2>
+
+                <div class="input-layout-one">
+                    <label for="username" class="input-label">Id</label>
+                    <input class="input-design" type="text" name="username" id="username">
+                </div>
+                
+                <div class="input-layout-one">
+                    <label for="password" class="input-label">Password</label>
+                    <input class="input-design" type="password" name="password" id="password">
+                </div>
+                <div class="">
+                    <input class="form-btn" type="submit" value="로그인">
+                </div>
+                <div class="">
+                    <a href="#" class="orange-hover">아이디가 없으신가요?</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+</body>
+</html>
