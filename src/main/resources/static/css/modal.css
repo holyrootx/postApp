@@ -1,0 +1,56 @@
+/* 모달 기본 */
+.modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  /* 숨김 처리 */
+  .hidden {
+    display: none;
+  }
+
+  /* 모달 내부 박스 */
+  .modal-content {
+    width: 50vw;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  /* 로딩 애니메이션 */
+  .loader {
+    border: 6px solid #f7f7f7;
+    border-top: 6px solid #a47864;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 0 auto;
+    animation: spin 1s linear infinite;
+  }
+  /* Chkck 아이콘 */
+  .check-icon{
+      color: green;
+      font-size: 2rem;
+  }
+  /* 모달 내부에서 보여줄 메세지 */
+  .modal-wait-message{
+      font-size: 1.5rem;
+  }
+  /* 성공시 상태 */
+  .success{
+      color: green;
+  }
+  /* 애니메이션 정의 */
+  @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+  }
