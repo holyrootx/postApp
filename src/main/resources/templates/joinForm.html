@@ -8,12 +8,12 @@
     <!-- Fontawesome 연결 Embed Code End-->
     <link th:href="@{/css/style.css}" rel="stylesheet" type="text/css">
     <link th:href="@{/css/form.css}" rel="stylesheet" type="text/css">
-    <link th:href="@{/css/modal.css}" rel="stylesheet" type="text/css">
+    <link th:href="@{/css/join-modal.css}" rel="stylesheet" type="text/css">
     <title>Join Form Page</title>
 </head>
 <body>
 <th:block th:replace="~{/layout/layout :: guestHeader}"></th:block>
-<th:block th:replace="~{/layout/layout :: modal}"></th:block>
+<th:block th:replace="~{/layout/layout :: join-modal}"></th:block>
 <div class="main-container">
     <div class="main-wrapper">
         <form th:action="@{/member/join}" method="POST" class="form">
@@ -54,6 +54,7 @@
         </form>
     </div>
 </div>
+<script th:src="@{/js/join-modal.js}"s></script>
 <script th:inline="javascript">
 
     let usernameDebounceTimer = null;
@@ -81,25 +82,6 @@
     const signupBtn  = document.querySelector("#signupBtn");
     const loader = document.querySelector(".loader");
 
-    function initModal(){
-        waitMessage.textContent = "잠시만 기다려주세요..."; // (대기 멘트)
-        waitMessage.classList.remove("success"); // 초록색을 기본상태로 (대기 상황)
-        loader.classList.remove("hidden"); // 로딩창 보이게하기(대기 상황)
-        checkIcon.classList.add("hidden"); // 성공창 숨기기 (대기 상황)
-        modal.classList.remove("hidden"); // 모달 보이기 (대기 상황)
-    }
-    function successModal(){
-        waitMessage.textContent = "회원가입 성공!!!"; // (성공)
-        waitMessage.classList.add("success"); // (성공)
-        checkIcon.classList.remove("hidden"); // 체크 (성공 상황)    
-        loader.classList.add("hidden"); // (대기 상태를 안보이게 하기)
-    }
-    function destroyModal(){
-        checkIcon.classList.add("hidden"); // (성공 상황)
-        waitMessage.classList.add("success");
-
-        modal.classList.add("hidden"); // 모달 숨기기
-    }
 
     inputUsername.addEventListener("input", () => {
         clearTimeout(usernameDebounceTimer);
@@ -125,11 +107,11 @@
                     });
 
                     const data = await res.json();
-
+                    console.log(data);
                     switch(data.status){
-                        case "AVAILABLE":
+                        case "AVAILABLE_USERNAME":
                             break;
-                        case "DUPLICATE":
+                        case "DUPLICATE_USERNAME":
                             result.valid = false;
                             result.message= "사용할 수 없는 아이디 입니다.";
                             break;
@@ -139,7 +121,7 @@
                             break;
                     }
 
-
+                    console.log(result);
                 } catch(e){
                     console.error(e.message);
                 }
@@ -243,9 +225,9 @@
                     const data = await res.json();
 
                     switch(data.status){
-                        case "AVAILABLE":
+                        case "AVAILABLE_EMAIL":
                             break;
-                        case "DUPLICATE":
+                        case "DUPLICATE_EMAIL":
                             result.valid = false;
                             result.message= "사용할 수 없는 이메일 입니다.";
                             break;
@@ -316,8 +298,24 @@
             "firstnameResult" : validateName(inputFirstname.value),
             "lastnameResult" : validateName(inputLastname.value)
         };
+        
         const finalResult = {valid : true};
-        resultSet.usernameResult.valid = true;
+        // resultSet.usernameResult.valid = true;
+
+        
+
+        if (resultSet.passwordResult.valid === true){
+            success(passwordCheck);
+        } else{
+            failed(passwordCheck);
+        }
+
+        if (resultSet.firstnameResult.valid === true && resultSet.lastnameResult.valid === true){
+            success(nameCheck);
+        } else{
+            failed(nameCheck);
+        }
+
         if(resultSet.usernameResult.valid)
             try{
                 console.log("UserNameResult Execute");
@@ -329,9 +327,9 @@
                 const data = await res.json();
 
                 switch(data.status){
-                    case "AVAILABLE":
+                    case "AVAILABLE_USERNAME":
                         break;
-                    case "DUPLICATE":
+                    case "DUPLICATE_USERNAME":
                         resultSet.usernameResult.valid = false;
                         resultSet.usernameResult.message = "사용할 수 없는 아이디 입니다.";
                         break;
@@ -359,9 +357,9 @@
                 const data = await res.json();
 
                 switch(data.status){
-                    case "AVAILABLE":
+                    case "AVAILABLE_EMAIL":
                         break;
-                    case "DUPLICATE":
+                    case "DUPLICATE_EMAIL":
                         resultSet.emailResult.valid = false;
                         resultSet.emailResult.message = "사용할 수 없는 이메일 입니다.";
                         break;
@@ -376,8 +374,21 @@
                 resultSet.emailResult.code = "ERROR";
                 resultSet.emailResult.message = "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
                 console.error(e.message);
-            }
+            } 
         }
+
+        if (resultSet.usernameResult.valid === true){
+            success(idCheck);
+        } else{
+            failed(idCheck);
+        }
+
+        if (resultSet.emailResult.valid === true){
+            success(emailCheck);
+        } else{
+            failed(emailCheck);
+        }
+
 
         Object.keys(resultSet).forEach( (result) => {
                 console.log(resultSet[result].valid);
@@ -401,19 +412,31 @@
                 });
                 const data = await res.json();
                 console.log(data.status);
-                if(data.status){
-                    // success면
-                    successModal();
-                }
+                // SUCCESS , FAILED
+                switch(data.status){
+                    case "SUCCESS":
+                        success(serverCheck);    
+                        break;
+                    case "FAILED":
+                        failed(serverCheck);
+                        Object.keys(resultSet).forEach((result) => {
+                         
+                            console.log(resultSet[result].valid);
+                        });
+                        break;
+                    default:
+                        result.valid = false;
+                        result.message= "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+                        break;
+                }                
+
             } catch(e){
                 console.error(e.message);
-            } finally{
-                destroyModal();
-            }
+            } 
         } else{
             console.log("에러난 항목이 하나는 무조건 있다.");
         }
-
+        destroyModal();
 
     })
 

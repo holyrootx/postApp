@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum JoinResponseStatus {
 
     SUCCESS("회원가입이 완료되었습니다."),
-
+    FAILED("생성 불가한 아이디입니다."),
     SERVER_ERROR("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."),
 
     AVAILABLE_USERNAME("사용 가능한 아이디입니다."),

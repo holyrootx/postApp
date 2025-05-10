@@ -8,7 +8,6 @@ public class JoinResponse {
 
     private String status;
     private String message;
-    private JoinResponseStatus joinResponseStatus;
 
     public JoinResponse(JoinResponseStatus joinResponseStatus) {
         this.status = joinResponseStatus.name();

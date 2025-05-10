@@ -52,5 +52,51 @@
         </div>
     </div>
 
+    <div th:fragment="join-modal">
+        <div id="progressModal" class="modal hidden">
+            <div class="modal-content">
+              <div class="loader"></div>
+              <div class="modal-grid">
+                <div class="id-validation-status validation-status">
+                  <i class="fa-solid fa-circle-exclamation id-check-default-icon"></i>
+                  <i class="fa-solid fa-circle-check hidden id-check-success-icon success"></i>
+                  <i class="fa-solid fa-circle-xmark hidden id-check-failed-icon failed"></i>
+                  <p class="modal-id-check-message-box">아이디를 검사하고 있어요.</p>
+                </div>
+    
+                <div class="password-validation-status validation-status">
+                  <i class="fa-solid fa-circle-exclamation password-check-default-icon"></i>
+                  <i class="fa-solid fa-circle-check hidden password-check-success-icon success"></i>
+                  <i class="fa-solid fa-circle-xmark hidden password-check-failed-icon failed"></i>
+                  <p class="modal-password-check-message-box">비밀번호를 검사하고 있어요.</p>
+                </div>
+            
+                <div class="email-validation-status validation-status">
+                  <i class="fa-solid fa-circle-exclamation email-check-default-icon"></i>
+                  <i class="fa-solid fa-circle-check hidden email-check-success-icon success"></i>
+                  <i class="fa-solid fa-circle-xmark hidden email-check-failed-icon failed"></i>
+                  <p class="modal-email-check-message-box">이메일을 검사하고 있어요.</p>
+                </div>
+            
+                <div class="name-validation-status validation-status">
+                  <i class="fa-solid fa-circle-exclamation name-check-default-icon"></i>
+                  <i class="fa-solid fa-circle-check hidden name-check-success-icon success"></i>
+                  <i class="fa-solid fa-circle-xmark hidden name-check-failed-icon failed"></i>
+                  <p class="modal-name-check-message-box">이름을 검사하고 있어요.</p>
+                </div>
+            
+                <div class="server-validation-status validation-status">
+                  <i class="fa-solid fa-circle-exclamation server-check-default-icon"></i>
+                  <i class="fa-solid fa-circle-check hidden server-check-success-icon success"></i>
+                  <i class="fa-solid fa-circle-xmark hidden server-check-failed-icon failed"></i>
+                  <p class="modal-server-check-message-box">서버에서 검사하고 있어요.</p>
+                </div>
+              </div>
+            </div>
+        </div>
+
+    </div>
+<!-- 모달창 (기본적으로 숨겨짐) -->
+  
 </body>
 </html>
