@@ -74,15 +74,24 @@ function destroyModal(){
   modal.classList.add("hidden");
 }
 
-function success(result){
-  result.failedIcon.classList.add("hidden");
-  result.defaultIcon.classList.add("hidden");
-  result.successIcon.classList.remove("hidden");
-  result.messageBox.textContent = result.successMessage;
+
+function changeModalFieldStatus(obj,result){
+    if(result.valid === true){
+        success(obj);
+    } else{
+        failed(obj);
+    }
 }
 
-function failed(result){
-  result.defaultIcon.classList.add("hidden");
-  result.failedIcon.classList.remove("hidden");
-  result.messageBox.textContent = result.failedMessage;
+function success(obj){
+    obj.failedIcon.classList.add("hidden");
+    obj.defaultIcon.classList.add("hidden");
+    obj.successIcon.classList.remove("hidden");
+    obj.messageBox.textContent = obj.successMessage;
+}
+
+function failed(obj){
+    obj.defaultIcon.classList.add("hidden");
+    obj.failedIcon.classList.remove("hidden");
+    obj.messageBox.textContent = obj.failedMessage;
 }

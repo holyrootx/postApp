@@ -18,7 +18,7 @@
     <div class="main-wrapper">
         <form th:action="@{/member/join}" method="POST" class="form">
             <h2 class="form-intro">회원가입</h2>
-            <div class="input-layout-username">
+            <div class="input-layout-one">
                 <label for="username" class="input-label username-label">Id</label>
                 <input class="input-design" type="text" name="username" id="username" placeholder="6자 이상 20자 이하 (영문, 숫자,하이픈 '-')만 허용" required>
             </div>
@@ -109,9 +109,9 @@
                     const data = await res.json();
                     console.log(data);
                     switch(data.status){
-                        case "AVAILABLE":
+                        case "AVAILABLE_USERNAME":
                             break;
-                        case "DUPLICATE":
+                        case "DUPLICATE_USERNAME":
                             result.valid = false;
                             result.message= "사용할 수 없는 아이디 입니다.";
                             break;
@@ -121,7 +121,7 @@
                             break;
                     }
 
-
+                    console.log(result);
                 } catch(e){
                     console.error(e.message);
                 }
@@ -225,9 +225,9 @@
                     const data = await res.json();
 
                     switch(data.status){
-                        case "AVAILABLE":
+                        case "AVAILABLE_EMAIL":
                             break;
-                        case "DUPLICATE":
+                        case "DUPLICATE_EMAIL":
                             result.valid = false;
                             result.message= "사용할 수 없는 이메일 입니다.";
                             break;
@@ -327,9 +327,9 @@
                 const data = await res.json();
 
                 switch(data.status){
-                    case "AVAILABLE":
+                    case "AVAILABLE_USERNAME":
                         break;
-                    case "DUPLICATE":
+                    case "DUPLICATE_USERNAME":
                         resultSet.usernameResult.valid = false;
                         resultSet.usernameResult.message = "사용할 수 없는 아이디 입니다.";
                         break;
@@ -357,9 +357,9 @@
                 const data = await res.json();
 
                 switch(data.status){
-                    case "AVAILABLE":
+                    case "AVAILABLE_EMAIL":
                         break;
-                    case "DUPLICATE":
+                    case "DUPLICATE_EMAIL":
                         resultSet.emailResult.valid = false;
                         resultSet.emailResult.message = "사용할 수 없는 이메일 입니다.";
                         break;
@@ -376,6 +376,19 @@
                 console.error(e.message);
             } 
         }
+
+        if (resultSet.usernameResult.valid === true){
+            success(idCheck);
+        } else{
+            failed(idCheck);
+        }
+
+        if (resultSet.emailResult.valid === true){
+            success(emailCheck);
+        } else{
+            failed(emailCheck);
+        }
+
 
         Object.keys(resultSet).forEach( (result) => {
                 console.log(resultSet[result].valid);
@@ -399,19 +412,31 @@
                 });
                 const data = await res.json();
                 console.log(data.status);
-                if(data.status){
-                    // success면
-                    
-                }
+                // SUCCESS , FAILED
+                switch(data.status){
+                    case "SUCCESS":
+                        success(serverCheck);    
+                        break;
+                    case "FAILED":
+                        failed(serverCheck);
+                        Object.keys(resultSet).forEach((result) => {
+                         
+                            console.log(resultSet[result].valid);
+                        });
+                        break;
+                    default:
+                        result.valid = false;
+                        result.message= "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+                        break;
+                }                
+
             } catch(e){
                 console.error(e.message);
-            } finally{
-                destroyModal();
-            }
+            } 
         } else{
             console.log("에러난 항목이 하나는 무조건 있다.");
         }
-
+        destroyModal();
 
     })
 

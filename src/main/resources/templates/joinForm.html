@@ -18,7 +18,7 @@
     <div class="main-wrapper">
         <form th:action="@{/member/join}" method="POST" class="form">
             <h2 class="form-intro">회원가입</h2>
-            <div class="input-layout-username">
+            <div class="input-layout-one">
                 <label for="username" class="input-label username-label">Id</label>
                 <input class="input-design" type="text" name="username" id="username" placeholder="6자 이상 20자 이하 (영문, 숫자,하이픈 '-')만 허용" required>
             </div>
@@ -30,22 +30,23 @@
                 <label for="email" class="input-label">Email</label>
                 <input class="input-design" type="email" name="email" id="email" required>
             </div>
-            <div>
+            <div class="input-layout-one">
+                <label for="firstname" class="input-label">이름</label>
+                <input class="input-design name" type="text" name="firstname" id="firstname" placeholder="이름" required>
+                
+            </div>
+            <div class="input-layout-one">
+                <label for="lastname" class="input-label">성</label>
+                <input class="input-design name" type="text" name="lastname" id="lastname" placeholder="성" required>
+            </div>
+            <div class="error-box-layout">
                 <span id="id-check-message"></span>
                 <span id="password-check-message"></span>
                 <span id="email-check-message"></span>
-            </div>
-            <div class="input-layout-name">
-                <label for="firstname" class="input-label">이름</label>
-                <label for="lastname" class="input-label">성</label>
-                <input class="input-design name" type="text" name="firstname" id="firstname" placeholder="이름" required>
-                <input class="input-design name" type="text" name="lastname" id="lastname" placeholder="성" required>
-            </div>
-            <div>
                 <span id="name-check-message"></span>
             </div>
             <div class="">
-                <button class="join-btn" type="button" value="회원가입">회원가입</button>
+                <button class="join-btn flip" type="button" value="회원가입">회원가입</button>
             </div>
             <div class="">
                 <a th:href="@{/member/loginForm}" class="orange-hover">아이디가 이미 있으신가요?</a>
@@ -62,7 +63,6 @@
     let emailDebounceTimer = null;
     let nameDebounceTimer = null;
 
-    const debounceTimers = {"username":usernameDebounceTimer,"password":passwordDebounceTimer,"email" : emailDebounceTimer, "name" : nameDebounceTimer};
 
     const inputUsername = document.querySelector("#username");
     const inputPassword = document.querySelector("#password");
@@ -75,175 +75,87 @@
     const joinBtn = document.querySelector(".join-btn");
     const idCheckMessage = document.querySelector(".id-check-message");
 
-    const modal = document.getElementById("progressModal");
+    function changeValidationUsernameUI(){
+        const username = inputUsername.value.trim();
+        const result = validateUsername(username);
+        // ✅ 후속 처리
+        // 1. input을 빨갛게 물들임
+        const idCheckMessage = document.querySelector("#id-check-message");
 
-    const checkIcon = document.querySelector(".check-icon");
-    const waitMessage = document.querySelector(".modal-wait-message");
-    const signupBtn  = document.querySelector("#signupBtn");
-    const loader = document.querySelector(".loader");
+        updateUI(inputUsername,idCheckMessage,result);
 
+        return result;
+    }    
+
+    function changeValidationPasswordUI(){
+        const password = inputPassword.value.trim();
+
+        const result = validatePassword(password);
+        const passwordCheckMessage = document.querySelector("#password-check-message");
+
+        updateUI(inputPassword,passwordCheckMessage,result);
+        
+        return result;
+    }
+
+    function changeValidationEmailUI(){
+        const email = inputEmail.value.trim();
+        const emailCheckMessage = document.querySelector("#email-check-message");
+        const result = validateEmail(email);
+
+        updateUI(inputEmail,emailCheckMessage,result);
+        return result;
+    }
+
+    function changeValidationNameUI(){
+        const fisrtname = inputFirstname.value.trim();
+        const lastname =  inputLastname.value.trim();
+        const firstnameResult = validateName(fisrtname);
+        const nameCheckMessage = document.querySelector("#name-check-message");
+        // console.log(`First NAME  == [${fisrtname}] 길이 : [${fisrtname.length}] ${firstnameResult.valid}  : ${firstnameResult.message} `);
+        updateUIOnlyInput(inputFirstname,firstnameResult);
+        const lastnameResult = validateName(lastname);
+        // console.log(`Last NAME ==[${lastname}]  길이 : [${lastname.length}]${lastnameResult.valid}  : ${lastnameResult.message}`);
+        updateUIOnlyInput(inputLastname,lastnameResult);
+        if(firstnameResult.valid && lastnameResult.valid){
+            updateUIOnlyMessage(nameCheckMessage,{valid : true, message : "사용 가능한 이름입니다."});
+        } else{
+            // 이름이 유효함
+            if(lastnameResult.valid === true){
+                updateUIOnlyMessage(nameCheckMessage,firstnameResult);
+            } else if(firstnameResult.valid === true){
+                updateUIOnlyMessage(nameCheckMessage,lastnameResult);
+            } else{
+                updateUIOnlyMessage(nameCheckMessage,lastnameResult);
+            }
+        }
+        return {firstnameResult,lastnameResult};
+    }
 
     inputUsername.addEventListener("input", () => {
         clearTimeout(usernameDebounceTimer);
-        usernameDebounceTimer = setTimeout( async () => {
-            const username = inputUsername.value.trim();
-            const result = validateUsername(username);
-
-
-            // ✅ 후속 처리
-            // 1. input을 빨갛게 물들임
-            console.log(result);
-            const idCheckMessage = document.querySelector("#id-check-message");
-
-
-            if(result.valid === true){
-
-                try{
-
-                    const res = await fetch("/member/idCheck",{
-                        method: "POST",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify({"username" : username}) // 객체로 전달
-                    });
-
-                    const data = await res.json();
-                    console.log(data);
-                    switch(data.status){
-                        case "AVAILABLE_USERNAME":
-                            break;
-                        case "DUPLICATE_USERNAME":
-                            result.valid = false;
-                            result.message= "사용할 수 없는 아이디 입니다.";
-                            break;
-                        default:
-                            result.valid = false;
-                            result.message= "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-                            break;
-                    }
-
-                    console.log(result);
-                } catch(e){
-                    console.error(e.message);
-                }
-            }
-            updateUI(inputUsername,idCheckMessage,result);
-
-
-        }, 500) // 0.5초 입력 멈춤 후 검사 실행
+        usernameDebounceTimer = setTimeout(() => {
+            changeValidationUsernameUI();
+        }, 400) // 0.4초 입력 멈춤 후 검사 실행
     });
-
-    // inputUsername.addEventListener("input", (inpUser) => {
-    //     validate(inpUser,idCheckMessage,() => validateUsername(inputUsername.value) , debounceTimers.usernameDebounceTimer,async () =>{
-    //     const res = await fetch("/member/idCheck",{
-    //         method: "POST",
-    //         headers: {"Content-Type": "application/json"},
-    //         body: JSON.stringify({"username" : username}) // 객체로 전달
-    //     });
-    //     const data = await res.json();
-    //     });
-    // })
-    function validate(inputElem,messageElem,validatorFunc,debounceTimer = debounceTimers,ascFunc = null){
-            clearTimeout(debounceTimer[inputElem.id]);
-
-            debounceTimer[inputElem.id] = setTimeout( async ()=>{
-                const inputValue = inputElem.value.trim();
-                const result = validatorFunc(inputValue);
-
-                if(result.valid === true && ascFunc){
-                    try{
-                        const data = await ascFunc(inputElem.id,inputValue); // json 데이터 반환
-
-                        switch(data.status){
-
-                            case "AVAILABLE":
-                                break;
-
-                            case "DUPLICATE":
-                                result.valid = false;
-                                result.message= "이미 사용 중 입니다.";
-                                break;
-
-                            default:
-                                result.valid = false;
-                                result.message= "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-                                break;
-                        }
-
-
-                    } catch(e){
-                        console.error(e.message);
-                    }
-                } else{
-                    updateUI(inputElem,messageElem,result);
-                }
-
-
-            },400)
-    }
-
 
     inputPassword.addEventListener("input",() => {
 
         clearTimeout(passwordDebounceTimer);
 
         passwordDebounceTimer =  setTimeout(()=>{
-
-            const password = inputPassword.value.trim();
-
-            const result = validatePassword(password);
-            const passwordCheckMessage = document.querySelector("#password-check-message");
-
-            updateUI(inputPassword,passwordCheckMessage,result);
-
+            changeValidationPasswordUI();
+            
         },400);
 
     });
-
 
     inputEmail.addEventListener("input",() => {
 
         clearTimeout(emailDebounceTimer);
 
-        emailDebounceTimer =  setTimeout(async () => {
-
-            const email = inputEmail.value.trim();
-            const emailCheckMessage = document.querySelector("#email-check-message");
-
-            const result = validateEmail(email);
-
-
-            if(result.valid === true){
-
-                try{
-
-                    const res = await fetch("/member/emailCheck",{
-                        method: "POST",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify({"email" : email}) // 객체로 전달
-                    });
-
-                    const data = await res.json();
-
-                    switch(data.status){
-                        case "AVAILABLE_EMAIL":
-                            break;
-                        case "DUPLICATE_EMAIL":
-                            result.valid = false;
-                            result.message= "사용할 수 없는 이메일 입니다.";
-                            break;
-                        default:
-                            result.valid = false;
-                            result.message= "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-                            break;
-                    }
-
-
-                } catch(e){
-                    console.error(e.message);
-                }
-            }
-
-            updateUI(inputEmail,emailCheckMessage,result);
+        emailDebounceTimer =  setTimeout(() => {
+            changeValidationEmailUI();
 
         },400);
     });
@@ -255,149 +167,48 @@
             clearTimeout(nameDebounceTimer);
 
             nameDebounceTimer =  setTimeout(()=>{
-
-                const fisrtname = inputFirstname.value.trim();
-                const lastname =  inputLastname.value.trim();
-
-                const firstnameResult = validateName(fisrtname);
-                const nameCheckMessage = document.querySelector("#name-check-message");
-
-                console.log(`First NAME  == [${fisrtname}] 길이 : [${fisrtname.length}] ${firstnameResult.valid}  : ${firstnameResult.message} `);
-                updateUIOnlyInput(inputFirstname,firstnameResult);
-
-                const lastnameResult = validateName(lastname);
-                console.log(`Last NAME ==[${lastname}]  길이 : [${lastname.length}]${lastnameResult.valid}  : ${lastnameResult.message}`);
-                updateUIOnlyInput(inputLastname,lastnameResult);
-
-                if(firstnameResult.valid && lastnameResult.valid){
-                    const finalResult = { valid: true, message: "사용 가능한 이름입니다." };
-                    updateUIOnlyMessage(nameCheckMessage,finalResult);
-                } else{
-                    // 이름이 유효함
-                    if(lastnameResult.valid === true){
-                        updateUIOnlyMessage(nameCheckMessage,firstnameResult);
-                    } else if(firstnameResult.valid){
-                        updateUIOnlyMessage(nameCheckMessage,lastnameResult);
-                    } else{
-                        updateUIOnlyMessage(nameCheckMessage,lastnameResult);
-                    }
-                }
+                changeValidationNameUI();
 
             },400);
 
         });
     })
 
-    joinBtn.addEventListener("click", async (e)=> {
+    joinBtn.addEventListener("click", async ()=> {
         // 모든 값 가져와서 유효성 검사 진행 시켜
         initModal();
+
         const resultSet = {
             "usernameResult" : validateUsername(inputUsername.value),
             "passwordResult" : validatePassword(inputPassword.value),
             "emailResult" : validateEmail(inputEmail.value),
             "firstnameResult" : validateName(inputFirstname.value),
-            "lastnameResult" : validateName(inputLastname.value)
+            "lastnameResult" : validateName(inputLastname.value),
+            "nameResult" : undefined
         };
-        
+
+
+
         const finalResult = {valid : true};
         // resultSet.usernameResult.valid = true;
-
-        
-
-        if (resultSet.passwordResult.valid === true){
-            success(passwordCheck);
-        } else{
-            failed(passwordCheck);
-        }
-
-        if (resultSet.firstnameResult.valid === true && resultSet.lastnameResult.valid === true){
-            success(nameCheck);
-        } else{
-            failed(nameCheck);
-        }
-
-        if(resultSet.usernameResult.valid)
-            try{
-                console.log("UserNameResult Execute");
-                const res = await fetch("/member/idCheck",{
-                    method : "POST",
-                    headers : {"Content-Type" : "application/json"},
-                    body : JSON.stringify({"username" : inputUsername.value})
-                });
-                const data = await res.json();
-
-                switch(data.status){
-                    case "AVAILABLE_USERNAME":
-                        break;
-                    case "DUPLICATE_USERNAME":
-                        resultSet.usernameResult.valid = false;
-                        resultSet.usernameResult.message = "사용할 수 없는 아이디 입니다.";
-                        break;
-                    default:
-                        resultSet.usernameResult.valid = false;
-                        resultSet.usernameResult.message = "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-                        break;
-                }
-
-            } catch(e){
-                resultSet.usernameResult.valid = false;
-                resultSet.usernameResult.code = "ERROR";
-                resultSet.usernameResult.message = "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-                console.error(e.message);
-            }
-
-        if(resultSet.emailResult.valid){
-            try{
-                const res = await fetch("/member/emailCheck",{
-                    method : "POST",
-                    headers : {"Content-Type" : "application/json"},
-                    body : JSON.stringify({"email" : inputEmail.value})
-                });
-
-                const data = await res.json();
-
-                switch(data.status){
-                    case "AVAILABLE_EMAIL":
-                        break;
-                    case "DUPLICATE_EMAIL":
-                        resultSet.emailResult.valid = false;
-                        resultSet.emailResult.message = "사용할 수 없는 이메일 입니다.";
-                        break;
-                    default:
-                        resultSet.emailResult.valid = false;
-                        resultSet.emailResult.message = "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-                        break;
-                }
-
-            } catch(e){
-                resultSet.emailResult.valid = false;
-                resultSet.emailResult.code = "ERROR";
-                resultSet.emailResult.message = "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-                console.error(e.message);
-            } 
-        }
-
-        if (resultSet.usernameResult.valid === true){
-            success(idCheck);
-        } else{
-            failed(idCheck);
-        }
-
-        if (resultSet.emailResult.valid === true){
-            success(emailCheck);
-        } else{
-            failed(emailCheck);
-        }
-
-
-        Object.keys(resultSet).forEach( (result) => {
-                console.log(resultSet[result].valid);
-            });
-
-
         finalResult.valid = !Object.keys(resultSet).some((result) => result.valid === false);
-        console.log(finalResult.valid);
-        if(finalResult.valid){
+
+        if(finalResult.valid === true){
+            // 
+            if (resultSet.firstnameResult.valid && resultSet.lastnameResult.valid){
+                resultSet.nameResult = resultSet.firstnameResult;
+            } else{
+                if(resultSet.firstnameResult.valid === false){
+                    resultSet.nameResult = resultSet.firstnameResult;
+                } else{
+                    resultSet.nameResult = resultSet.lastnameResult;
+                }
+            }
+            changeModalFieldStatus(idCheck,resultSet.usernameResult);
+            changeModalFieldStatus(passwordCheck,resultSet.usernameResult);
+            changeModalFieldStatus(emailCheck,resultSet.usernameResult);
+            changeModalFieldStatus(nameCheck,resultSet.nameResult);
+
             try{
                 const res = await fetch("/member/join",{
                     method : "POST",
@@ -415,18 +226,26 @@
                 // SUCCESS , FAILED
                 switch(data.status){
                     case "SUCCESS":
-                        success(serverCheck);    
+                        success(serverCheck);
+                        // 동작이 모두 끝난 후 1초 뒤에 페이지 이동
+                        setTimeout(() => {
+                            
+                            destroyModal();
+
+                            location.href = "/main";
+                        }, 3000); // 1000ms = 1초
                         break;
-                    case "FAILED":
-                        failed(serverCheck);
-                        Object.keys(resultSet).forEach((result) => {
-                         
-                            console.log(resultSet[result].valid);
-                        });
+                    case "DUPLICATE_USERNAME":
+                        updateUI(inputUsername,document.querySelector("#id-check-message",{valid : false, code : "DUPLICATE_USERNAME", message : "사용할 수 없는 아이디입니다."}));
+                        changeValidationNameUI();
+                        changeValidationEmailUI();
+                        changeValidationPasswordUI();
                         break;
-                    default:
-                        result.valid = false;
-                        result.message= "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+                    case "DUPLICATE_EMAIL":
+                        updateUI(inputEmail,document.querySelector("#email-check-message",{valid : false, code : "DUPLICATE_EMAIL", message : "사용할 수 없는 이메일입니다."}));
+                        changeValidationUsernameUI();
+                        changeValidationNameUI();
+                        changeValidationPasswordUI();
                         break;
                 }                
 
@@ -435,11 +254,16 @@
             } 
         } else{
             console.log("에러난 항목이 하나는 무조건 있다.");
+            changeValidationUsernameUI();
+            changeValidationNameUI();
+            changeValidationEmailUI();
+            changeValidationPasswordUI();
         }
-        destroyModal();
 
     })
 
+
+    
 
     function validateUsername(username) {
 
@@ -683,20 +507,17 @@
     function updateUIOnlyInput(inputElem, result){
         if(!result) return;
 
-        if(result.valid === false){
         /**
          * 해야 하는 일
-         * 1. input에 있는 invlid-value가 있으면 그대로 없으면 제거
-         * 2. span에 warn이 있으면 그대로 없으면 추가
-         * 3. span에 successed가 있었다면 제거 없었다면 그대로
-         *
+         * 성 이름은 각각 검사 후 결과를 반영함
+         * 유효성 결과가 적합하지 않으면 경고 표시(INPUT 요소 자체에 경고 표시)
          *
          */
 
-        if(!inputElem.classList.contains("invalid-value")){
-            inputElem.classList.toggle("invalid-value");
-        }
-
+        if(result.valid === false){
+            if(!inputElem.classList.contains("invalid-value")){
+                inputElem.classList.toggle("invalid-value");
+            }
         } else{
             if(inputElem.classList.contains("invalid-value")){
                 inputElem.classList.toggle("invalid-value");
@@ -707,6 +528,12 @@
     function updateUIOnlyMessage(messageElem, result){
         if(!result) return;
 
+        /**
+         * 유효성 검사의 결과가 False인 경우
+         * warn 표시가 없으면 만듦 (경고 표시)
+         * successed 표시가 있으면 삭제함 
+         * 뒤는 그 반대
+         */
         if(result.valid === false){
             if(!messageElem.classList.contains("warn")){
                 messageElem.classList.toggle("warn");

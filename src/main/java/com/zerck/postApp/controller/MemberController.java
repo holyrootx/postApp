@@ -1,19 +1,18 @@
 package com.zerck.postApp.controller;
 
-import com.zerck.postApp.domain.MemberDTO;
-import com.zerck.postApp.response.EmailCheckResponse;
-import com.zerck.postApp.response.IdCheckResponse;
+import com.zerck.postApp.domain.JoinMemberRequest;
 import com.zerck.postApp.response.JoinResponse;
 import com.zerck.postApp.service.MemberService;
-import com.zerck.postApp.status.EmailStatus;
 import com.zerck.postApp.status.JoinResponseStatus;
-import com.zerck.postApp.status.UsernameStatus;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.Validator;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
@@ -67,20 +66,31 @@ public class MemberController {
     }
 
     @PostMapping("/join")
-    public ResponseEntity<JoinResponse> join(@RequestBody MemberDTO memberDTO){
-        log.info(memberDTO);
+    public ResponseEntity<JoinResponse> join(@Valid @RequestBody JoinMemberRequest joinMemberRequest,
+                                             BindingResult bindingResult ){
+        log.info("[POST] MemberController.join");
+        log.info(joinMemberRequest);
+        bindingResult.getAllErrors().forEach(log::info);
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new JoinResponse(JoinResponseStatus.FAILED));
+        }
 
-        JoinResponse usernameStatus = memberService.checkId(memberDTO.getUsername());
+
+        JoinResponse usernameStatus = memberService.checkId(joinMemberRequest.getUsername());
 
         if(usernameStatus.toEnum() == JoinResponseStatus.DUPLICATE_USERNAME){
             return new ResponseEntity<>(new JoinResponse(JoinResponseStatus.DUPLICATE_USERNAME),HttpStatus.CONFLICT);
         }
 
-        JoinResponse emailStatus = memberService.checkEmail(memberDTO.getEmail());
+        JoinResponse emailStatus = memberService.checkEmail(joinMemberRequest.getEmail());
 
         if(emailStatus.toEnum() == JoinResponseStatus.DUPLICATE_EMAIL){
             return new ResponseEntity<>(new JoinResponse(JoinResponseStatus.DUPLICATE_EMAIL),HttpStatus.CONFLICT);
         }
+
+
 
         return new ResponseEntity<>(new JoinResponse(JoinResponseStatus.SUCCESS), HttpStatus.CREATED);
     }

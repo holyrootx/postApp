@@ -16,8 +16,8 @@ public enum JoinResponseStatus {
     AVAILABLE_LASTANAME("사용 가능한 성입니다."),
     AVAILABLE_NAME("사용 가능한 이름입니다."),
 
-    DUPLICATE_USERNAME("이미 사용 중인 아이디입니다."),
-    DUPLICATE_EMAIL("이미 사용 중인 이메일입니다."),
+    DUPLICATE_USERNAME("사용할 수 없는 아이디입니다."),
+    DUPLICATE_EMAIL("사용할 수 없는 이메일입니다."),
 
     EMPTY_USERNAME("아이디는 공백으로 생성할 수 없습니다."),
     EMPTY_EMAIL("이메일은 공백으로 생성할 수 없습니다."),
